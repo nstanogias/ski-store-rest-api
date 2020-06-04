@@ -21,11 +21,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -74,6 +76,17 @@ public class ProductsController {
                             return productToReturn;
                         })
                         .collect(Collectors.toList()));
+    }
+
+    @GetMapping("/{id}")
+    public ProductToReturn getProductById(@PathVariable Long id) {
+        Optional<Product> product = productRepository.findById(id);
+        if (product.isPresent()) {
+            ProductToReturn productToReturn =  modelMapper.map(product.get(), ProductToReturn.class);
+            productToReturn.setPictureUrl("https://localhost:8443/" + productToReturn.getPictureUrl());
+            return productToReturn;
+        }
+        return null;
     }
 
     @GetMapping("/types")
