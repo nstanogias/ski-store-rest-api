@@ -1,6 +1,5 @@
 package com.nstanogias.skistore.web;
 
-import com.nstanogias.skistore.domain.CustomerBasket;
 import com.nstanogias.skistore.dtos.CustomerBasketDto;
 import com.nstanogias.skistore.service.BasketService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 @RestController
@@ -24,7 +24,7 @@ public class BasketController {
     }
 
     @PostMapping
-    public ResponseEntity<CustomerBasketDto> updateBasket(@RequestBody CustomerBasket basket) {
+    public ResponseEntity<CustomerBasketDto> updateBasket(@RequestBody @Valid CustomerBasketDto basket) {
         return new ResponseEntity<>(basketService.insert(basket), HttpStatus.OK);
     }
 

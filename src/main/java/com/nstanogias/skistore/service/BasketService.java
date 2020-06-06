@@ -30,11 +30,12 @@ public class BasketService {
     private CustomerBasketMapper customerBasketMapper = Mappers.getMapper(CustomerBasketMapper.class);
 
     @Caching(put = {
-            @CachePut(value = "findByCidCache", key = "#customerBasket.cid")
+            @CachePut(value = "findByCidCache", key = "#customerBasketDto.cid")
     })
-    public CustomerBasketDto insert(CustomerBasket customerBasket) {
+    public CustomerBasketDto insert(CustomerBasketDto customerBasketDto) {
         log.info("Update: Updating cache with name: findAllCache and findByCidCache");
-        return customerBasketMapper.customerBasketToCustomerBasketDto(basketRepository.save(customerBasket));
+        return customerBasketMapper.customerBasketToCustomerBasketDto(
+                basketRepository.save(customerBasketMapper.customerBasketDtoToCustomerBasket(customerBasketDto)));
     }
 
     @Cacheable(

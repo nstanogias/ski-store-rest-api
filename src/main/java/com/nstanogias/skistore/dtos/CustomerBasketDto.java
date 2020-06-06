@@ -1,10 +1,10 @@
 package com.nstanogias.skistore.dtos;
 
-import com.nstanogias.skistore.domain.BasketItem;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
@@ -12,6 +12,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerBasketDto implements Serializable {
+
+    @NotNull
     private String cid;
-    private List<BasketItem> items;
+
+    private List<BasketItemDto> items;
 }
