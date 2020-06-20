@@ -1,11 +1,13 @@
 package com.nstanogias.skistore.service;
 
+import com.nstanogias.skistore.domain.BasketItem;
 import com.nstanogias.skistore.domain.CustomerBasket;
 import com.nstanogias.skistore.dtos.CustomerBasketDto;
 import com.nstanogias.skistore.mapper.CustomerBasketMapper;
 import com.nstanogias.skistore.repository.BasketRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.factory.Mappers;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
@@ -20,6 +22,8 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class BasketService {
+    @Autowired
+    ModelMapper modelMapper;
 
     @Autowired
     CacheManager cacheManager;
@@ -34,8 +38,13 @@ public class BasketService {
     })
     public CustomerBasketDto insert(CustomerBasketDto customerBasketDto) {
         log.info("Update: Updating cache with name: findAllCache and findByCidCache");
-        return customerBasketMapper.customerBasketToCustomerBasketDto(
-                basketRepository.save(customerBasketMapper.customerBasketDtoToCustomerBasket(customerBasketDto)));
+        CustomerBasket customerBasket= new CustomerBasket();
+        customerBasket.setCid(customerBasketDto.getCid());
+        customerBasketDto.getItems().forEach(basketItemDto -> {
+            customerBasket.addItem(modelMapper.map(basketItemDto, BasketItem.class));
+        });
+        basketRepository.save(customerBasket);
+        return modelMapper.map(customerBasket, CustomerBasketDto.class);
     }
 
     @Cacheable(
@@ -46,7 +55,7 @@ public class BasketService {
     public CustomerBasketDto findByCid(String cid) {
         Optional<CustomerBasket> findCustomerBasket = basketRepository.findByCid(cid);
         if(findCustomerBasket.isPresent()) {
-            return customerBasketMapper.customerBasketToCustomerBasketDto(findCustomerBasket.get());
+            return modelMapper.map(findCustomerBasket.get(), CustomerBasketDto.class);
         } else {
             log.error("CustomerBasket not found");
             return null;

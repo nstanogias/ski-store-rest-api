@@ -1,13 +1,11 @@
 package com.nstanogias.skistore.domain;
 
+import com.nstanogias.skistore.domain.order.Address;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Data
 @AllArgsConstructor
@@ -21,10 +19,7 @@ public class User {
     private String displayName;
     private String email;
     private String password;
-    private String firstName;
-    private String lastName;
-    private String street;
-    private String city;
-    private String state;
-    private String zipCode;
+
+    @OneToOne(cascade = {CascadeType.ALL})
+    private Address address;
 }

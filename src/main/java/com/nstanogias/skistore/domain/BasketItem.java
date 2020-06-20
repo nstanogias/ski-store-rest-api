@@ -1,17 +1,14 @@
 package com.nstanogias.skistore.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 public class BasketItem implements Serializable {
     @Id
@@ -26,6 +23,5 @@ public class BasketItem implements Serializable {
     private String type;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "customerBasket_id")
     private CustomerBasket customerBasket;
 }
