@@ -17,4 +17,8 @@ public class CustomerBasketDto implements Serializable {
     private String cid;
 
     private List<BasketItemDto> items;
+    private long deliveryMethodId;
+    private String clientSecret;
+    private String paymentIntentId;
+    private double shippingPrice;
 }

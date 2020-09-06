@@ -3,10 +3,8 @@ package com.nstanogias.skistore.service;
 import com.nstanogias.skistore.domain.BasketItem;
 import com.nstanogias.skistore.domain.CustomerBasket;
 import com.nstanogias.skistore.dtos.CustomerBasketDto;
-import com.nstanogias.skistore.mapper.CustomerBasketMapper;
 import com.nstanogias.skistore.repository.BasketRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.mapstruct.factory.Mappers;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -31,20 +29,35 @@ public class BasketService {
     @Autowired
     BasketRepository basketRepository;
 
-    private CustomerBasketMapper customerBasketMapper = Mappers.getMapper(CustomerBasketMapper.class);
-
     @Caching(put = {
             @CachePut(value = "findByCidCache", key = "#customerBasketDto.cid")
     })
     public CustomerBasketDto insert(CustomerBasketDto customerBasketDto) {
-        log.info("Update: Updating cache with name: findAllCache and findByCidCache");
-        CustomerBasket customerBasket= new CustomerBasket();
-        customerBasket.setCid(customerBasketDto.getCid());
-        customerBasketDto.getItems().forEach(basketItemDto -> {
-            customerBasket.addItem(modelMapper.map(basketItemDto, BasketItem.class));
-        });
-        basketRepository.save(customerBasket);
-        return modelMapper.map(customerBasket, CustomerBasketDto.class);
+        Optional<CustomerBasket> basket = basketRepository.findByCid(customerBasketDto.getCid());
+        if (basket.isPresent()) {
+            CustomerBasket basketToUpdate = basket.get();
+            basketToUpdate.setClientSecret(customerBasketDto.getClientSecret());
+            basketToUpdate.setPaymentIntentId(customerBasketDto.getPaymentIntentId());
+            basketToUpdate.setShippingPrice(customerBasketDto.getShippingPrice());
+            basketToUpdate.removeAll();
+            customerBasketDto.getItems().forEach(basketItemDto -> {
+                basketToUpdate.addItem(modelMapper.map(basketItemDto, BasketItem.class));
+            });
+            basketRepository.save(basketToUpdate);
+            log.info("basket updated");
+        } else {
+            CustomerBasket basketToCreate = new CustomerBasket();
+            basketToCreate.setCid(customerBasketDto.getCid());
+            basketToCreate.setClientSecret(customerBasketDto.getClientSecret());
+            basketToCreate.setPaymentIntentId(customerBasketDto.getPaymentIntentId());
+            basketToCreate.setShippingPrice(customerBasketDto.getShippingPrice());
+            customerBasketDto.getItems().forEach(basketItemDto -> {
+                basketToCreate.addItem(modelMapper.map(basketItemDto, BasketItem.class));
+            });
+            basketRepository.save(basketToCreate);
+            log.info("basket created");
+        }
+        return customerBasketDto;
     }
 
     @Cacheable(

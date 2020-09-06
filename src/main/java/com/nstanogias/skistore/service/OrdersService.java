@@ -8,6 +8,7 @@ import com.nstanogias.skistore.repository.BasketRepository;
 import com.nstanogias.skistore.repository.DeliveryMethodRepository;
 import com.nstanogias.skistore.repository.OrderRepository;
 import com.nstanogias.skistore.repository.ProductRepository;
+import com.stripe.exception.StripeException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -38,8 +39,11 @@ public class OrdersService {
     @NotNull
     private final BasketRepository basketRepository;
 
+    @NotNull
+    private final PaymentService paymentService;
+
     @Transactional
-    public Order createOrder(String buyerEmail, long deliveryMethodId, String basketId, AddressDto shippingAddress) {
+    public Order createOrder(String buyerEmail, long deliveryMethodId, String basketId, AddressDto shippingAddress) throws StripeException {
 
         Optional<CustomerBasket> basket = basketRepository.findByCid(basketId);
 
@@ -59,13 +63,17 @@ public class OrdersService {
                 orderToCreate.addOrderItem(orderItem);
             });
             double subtotal = orderToCreate.getOrderItems().stream().mapToDouble(orderItem -> orderItem.getPrice() * orderItem.getQuantity()).reduce(0.0, Double::sum);
+            Optional<Order> orderByIntentId = orderRepository.findByPaymentIntentId(basket.get().getPaymentIntentId());
+            if (orderByIntentId.isPresent()) {
+                orderRepository.delete(orderByIntentId.get());
+                paymentService.createOrUpdatePaymentIntent(basket.get().getCid());
+            }
+            orderToCreate.setPaymentIntentId(basket.get().getPaymentIntentId());
             orderToCreate.setBuyerEmail(buyerEmail);
             orderToCreate.setShipToAddress(modelMapper.map(shippingAddress, Address.class));
             orderToCreate.setDeliveryMethod(deliveryMethod);
             orderToCreate.setSubTotal(subtotal);
             orderRepository.save(orderToCreate);
-            basketRepository.deleteByCid(basketId);
-
             return orderToCreate;
         } else {
             log.error("basket not found");

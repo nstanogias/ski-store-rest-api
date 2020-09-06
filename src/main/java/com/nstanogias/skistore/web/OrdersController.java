@@ -6,6 +6,7 @@ import com.nstanogias.skistore.dtos.OrderDto;
 import com.nstanogias.skistore.dtos.OrderToReturnDto;
 import com.nstanogias.skistore.security.UserPrincipal;
 import com.nstanogias.skistore.service.OrdersService;
+import com.stripe.exception.StripeException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,17 +29,17 @@ public class OrdersController {
     private final OrdersService ordersService;
 
     @PostMapping()
-    public ResponseEntity<Order> createOrder(@RequestBody OrderDto orderDto) {
+    public ResponseEntity<Order> createOrder(@RequestBody OrderDto orderDto) throws StripeException {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Order order = ordersService.createOrder(userPrincipal.getUsername(), orderDto.getDeliveryMethodId(), orderDto.getBasketId(), orderDto.getShipToAddress());
         return order == null ? ResponseEntity.badRequest().body(null) : ResponseEntity.ok(order);
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderDto>> getOrdersForUser() {
+    public ResponseEntity<List<OrderToReturnDto>> getOrdersForUser() {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<Order> ordersForUser = ordersService.getOrdersForUser(userPrincipal.getUsername());
-        List<OrderDto> orderDtos = ordersForUser.stream().map(order -> modelMapper.map(order, OrderDto.class)).collect(Collectors.toList());
+        List<OrderToReturnDto> orderDtos = ordersForUser.stream().map(order -> modelMapper.map(order, OrderToReturnDto.class)).collect(Collectors.toList());
         return ResponseEntity.ok(orderDtos);
     }
 

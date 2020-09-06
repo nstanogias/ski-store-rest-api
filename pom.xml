@@ -97,6 +97,12 @@
 			<artifactId>jjwt</artifactId>
 			<version>${jjwt.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>19.23.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

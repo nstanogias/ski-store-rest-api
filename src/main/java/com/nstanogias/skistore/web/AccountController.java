@@ -67,7 +67,7 @@ public class AccountController {
     }
 
     @PreAuthorize("isAuthenticated()")
-    @PostMapping("/address")
+    @PutMapping("/address")
     public ResponseEntity<AddressDto> updateUserAddress(@Valid @RequestBody AddressDto addressDto) {
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User user = userRepository.findByEmail(userPrincipal.getUsername()).get();
